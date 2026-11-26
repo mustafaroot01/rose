@@ -1,10 +1,11 @@
-import { copyFileSync, existsSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import laravel from 'laravel-vite-plugin'
 
 // ينسخ عامل maplibre (worker) إلى مجلد البناء — فـ maplibre يطلبه بجانب ملفه
 // وهو لا يُضمَّن تلقائيًا في الباندل، مما يسبب خطأ MIME على خريطة الإدارة.
+// الخطوة غير حرِجة: لا تُفشل البناء إن تعذّر النسخ (اختلاف نسخة maplibre أو غياب المجلد).
 const copyMaplibreWorker = () => ({
   name: 'copy-maplibre-worker',
   apply: 'build' as const,
@@ -13,8 +14,15 @@ const copyMaplibreWorker = () => ({
     for (const name of ['maplibre-gl-worker.mjs', 'maplibre-gl-worker.mjs.map']) {
       const src = resolve(root, 'node_modules/maplibre-gl/dist', name)
       const dest = resolve(root, 'public/build/assets', name)
-      if (existsSync(src))
-        copyFileSync(src, dest)
+      try {
+        if (existsSync(src)) {
+          mkdirSync(dirname(dest), { recursive: true })
+          copyFileSync(src, dest)
+        }
+      }
+      catch {
+        // تجاهل — سيُحمّل العامل وقت التشغيل عند الحاجة
+      }
     }
   },
 })

@@ -7,21 +7,21 @@ const statusFilter = ref<string>()
 const categoryFilter = ref<number>()
 const governorateFilter = ref<number>()
 
-// 👉 نقاط النباتات (GeoJSON خفيف) — تُعاد تلقائيًا عند تغيّر الفلاتر
-const { data } = await useApi<PlantFeatureCollection>(createUrl('/admin/plants/map', {
-  query: {
-    status: statusFilter,
-    category_id: categoryFilter,
-    governorate_id: governorateFilter,
-  },
-}))
+// 👉 نقاط النباتات (GeoJSON خفيف) + خيارات الفلاتر بالتوازي
+const [{ data }, { data: catData }, { data: govData }] = await Promise.all([
+  useApi<PlantFeatureCollection>(createUrl('/admin/plants/map', {
+    query: {
+      status: statusFilter,
+      category_id: categoryFilter,
+      governorate_id: governorateFilter,
+    },
+  })),
+  useApi<{ id: number; name: string }[]>('/admin/plant-categories/options'),
+  useApi<{ id: number; name: string }[]>('/admin/governorates/options'),
+])
 
 const geojson = computed<PlantFeatureCollection>(() => data.value ?? { type: 'FeatureCollection', features: [] })
 const total = computed(() => geojson.value.features.length)
-
-// 👉 خيارات الفلاتر
-const { data: catData } = await useApi<{ id: number; name: string }[]>('/admin/plant-categories/options')
-const { data: govData } = await useApi<{ id: number; name: string }[]>('/admin/governorates/options')
 
 const categoryItems = computed(() => (catData.value ?? []).map(c => ({ title: c.name, value: c.id })))
 const governorateItems = computed(() => (govData.value ?? []).map(g => ({ title: g.name, value: g.id })))

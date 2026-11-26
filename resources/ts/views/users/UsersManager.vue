@@ -57,30 +57,36 @@ const headers = computed(() => [
   { title: 'إجراءات', key: 'actions', sortable: false },
 ])
 
-const { data: typeOptionsData } = await useApi<AccountTypeOption[]>('/admin/account-types/options')
-const { data: govOptionsData } = await useApi<GovernorateOption[]>('/admin/governorates/options')
-const { data: distOptionsData } = await useApi<DistrictOption[]>('/admin/districts/options')
+const [
+  { data: typeOptionsData },
+  { data: govOptionsData },
+  { data: distOptionsData },
+  { data, execute: fetchData },
+] = await Promise.all([
+  useApi<AccountTypeOption[]>('/admin/account-types/options'),
+  useApi<GovernorateOption[]>('/admin/governorates/options'),
+  useApi<DistrictOption[]>('/admin/districts/options'),
+  useApi<any>(createUrl(props.endpoint, {
+    query: {
+      q: searchQuery,
+      role: props.role,
+      roles: props.roles,
+      account_type_id: selectedType,
+      status: selectedStatus,
+      governorate_id: selectedGovernorate,
+      itemsPerPage,
+      page,
+      sortBy,
+      orderBy,
+    },
+  })),
+])
 
 const accountTypes = computed<AccountTypeOption[]>(() => typeOptionsData.value ?? [])
 const governorates = computed<GovernorateOption[]>(() => govOptionsData.value ?? [])
 const districts = computed<DistrictOption[]>(() => distOptionsData.value ?? [])
 const typeFilterItems = computed(() => accountTypes.value.map(t => ({ title: t.name, value: t.id })))
 const governorateFilterItems = computed(() => governorates.value.map(g => ({ title: g.name, value: g.id })))
-
-const { data, execute: fetchData } = await useApi<any>(createUrl(props.endpoint, {
-  query: {
-    q: searchQuery,
-    role: props.role,
-    roles: props.roles,
-    account_type_id: selectedType,
-    status: selectedStatus,
-    governorate_id: selectedGovernorate,
-    itemsPerPage,
-    page,
-    sortBy,
-    orderBy,
-  },
-}))
 
 const users = computed<AppUser[]>(() => data.value?.data ?? [])
 const total = computed<number>(() => data.value?.meta?.total ?? 0)

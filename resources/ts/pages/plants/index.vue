@@ -35,23 +35,25 @@ const headers = [
   { title: 'إجراءات', key: 'actions', sortable: false },
 ]
 
-const { data: catOptions } = await useApi<PlantCategoryOption[]>('/admin/plant-categories/options')
-const { data: govOptions } = await useApi<GovernorateOption[]>('/admin/governorates/options')
+const [{ data: catOptions }, { data: govOptions }, { data, execute: fetchData }] = await Promise.all([
+  useApi<PlantCategoryOption[]>('/admin/plant-categories/options'),
+  useApi<GovernorateOption[]>('/admin/governorates/options'),
+  useApi<any>(createUrl('/admin/plants', {
+    query: {
+      q: searchQuery,
+      category_id: selectedCategory,
+      governorate_id: selectedGovernorate,
+      status: selectedStatus,
+      itemsPerPage,
+      page,
+      sortBy,
+      orderBy,
+    },
+  })),
+])
+
 const categoryItems = computed(() => (catOptions.value ?? []).map(c => ({ title: c.name, value: c.id })))
 const governorateItems = computed(() => (govOptions.value ?? []).map(g => ({ title: g.name, value: g.id })))
-
-const { data, execute: fetchData } = await useApi<any>(createUrl('/admin/plants', {
-  query: {
-    q: searchQuery,
-    category_id: selectedCategory,
-    governorate_id: selectedGovernorate,
-    status: selectedStatus,
-    itemsPerPage,
-    page,
-    sortBy,
-    orderBy,
-  },
-}))
 
 const plants = computed<Plant[]>(() => data.value?.data ?? [])
 const total = computed<number>(() => data.value?.meta?.total ?? 0)

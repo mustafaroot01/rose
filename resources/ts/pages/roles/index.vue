@@ -2,8 +2,10 @@
 import RoleDialog from '@/views/users/RoleDialog.vue'
 import { type Role, coreRoles, permissionLabels, roleLabels } from '@/views/users/roleTypes'
 
-const { data: rolesData, execute: fetchRoles } = await useApi<{ data: Role[] }>('/admin/roles')
-const { data: permsData } = await useApi<{ data: string[] }>('/admin/permissions')
+const [{ data: rolesData, execute: fetchRoles }, { data: permsData }] = await Promise.all([
+  useApi<{ data: Role[] }>('/admin/roles'),
+  useApi<{ data: string[] }>('/admin/permissions'),
+])
 
 const roles = computed<Role[]>(() => rolesData.value?.data ?? [])
 const allPermissions = computed<string[]>(() => permsData.value?.data ?? [])

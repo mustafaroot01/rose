@@ -19,10 +19,11 @@ interface StatsResponse {
 
 const vuetifyTheme = useTheme()
 
-const { data: statsData } = await useApi<StatsResponse>('/admin/stats')
+const [{ data: statsData }, { data: mapData }] = await Promise.all([
+  useApi<StatsResponse>('/admin/stats'),
+  useApi<PlantFeatureCollection>('/admin/plants/map'),
+])
 const stats = computed(() => statsData.value)
-
-const { data: mapData } = await useApi<PlantFeatureCollection>('/admin/plants/map')
 const geojson = computed<PlantFeatureCollection>(() => mapData.value ?? { type: 'FeatureCollection', features: [] })
 
 // 👉 بطاقات الأرقام

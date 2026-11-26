@@ -40,8 +40,7 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
 
     <RouterView v-slot="{ Component }">
       <Suspense
-        :timeout="0"
-        @fallback="isFallbackStateActive = true"
+        @pending="isFallbackStateActive = true"
         @resolve="isFallbackStateActive = false"
       >
         <Component :is="Component" />

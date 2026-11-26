@@ -1,0 +1,129 @@
+// Write your overrides
+
+/* 👉 Thmanyah Sans — خط الواجهة الأساسي */
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyah/thmanyahsans-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyah/thmanyahsans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyah/thmanyahsans-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+// 600 (SemiBold) غير متوفر في العائلة — نربطه بوزن Medium لتبقى العناوين متزنة
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyah/thmanyahsans-Medium.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyah/thmanyahsans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyah/thmanyahsans-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================
+   🌿 إعادة تصميم القائمة الجانبية (Vertical Nav)
+   ============================================================ */
+.layout-nav-type-vertical .layout-vertical-nav {
+  // خلفية ناعمة بتدرّج خفيف
+  background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.04) 0%, rgb(var(--v-theme-surface)) 22%) !important;
+
+  /* 👉 رأس القائمة — اسم المنصة (معالجة القص) */
+  .nav-header {
+    .app-logo {
+      column-gap: 0.625rem;
+
+      svg {
+        inline-size: 32px !important;
+        block-size: auto !important;
+      }
+    }
+
+    .app-logo-title {
+      display: -webkit-box;
+      overflow: hidden;
+      font-size: 1.0625rem !important;
+      line-height: 1.25 !important;
+      letter-spacing: 0 !important;
+      text-transform: none !important;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+  }
+
+  /* 👉 تباعد أريح للعناصر */
+  .nav-items {
+    padding-block: 0.5rem;
+  }
+
+  /* 👉 عناصر القائمة: زوايا أنعم وانتقال سلس */
+  .nav-link > :first-child,
+  .nav-group > :first-child {
+    border-radius: 10px !important;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  /* تحويم (ما عدا العنصر النشط) */
+  .nav-link > a:not(.router-link-exact-active):hover,
+  .nav-group:not(.active) > :first-child:hover {
+    background-color: rgba(var(--v-theme-primary), 0.09) !important;
+    transform: translateX(-2px);
+  }
+
+  /* 👉 العنصر النشط — حبّة خضراء متدرّجة بظل ناعم */
+  .nav-link > .router-link-exact-active {
+    background: linear-gradient(90deg, rgb(var(--v-theme-primary)) 0%, #10b981 100%) !important;
+    box-shadow: 0 8px 20px -6px rgba(var(--v-theme-primary), 0.55) !important;
+
+    &,
+    .nav-item-title,
+    .nav-item-icon {
+      color: #fff !important;
+    }
+  }
+
+  /* 👉 المجموعة المفتوحة/النشطة */
+  .nav-group.active > :first-child {
+    background-color: rgba(var(--v-theme-primary), 0.12) !important;
+
+    .nav-item-title,
+    .nav-group-arrow { color: rgb(var(--v-theme-primary)) !important; }
+  }
+
+  /* 👉 عناوين الأقسام */
+  .nav-section-title {
+    font-size: 0.6875rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.4px;
+    opacity: 0.55;
+  }
+}

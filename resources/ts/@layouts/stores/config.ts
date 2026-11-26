@@ -5,7 +5,8 @@ import { _setDirAttr } from '@layouts/utils'
 // ℹ️ We should not import themeConfig here but in urgency we are doing it for now
 import { layoutConfig } from '@themeConfig'
 
-export const namespaceConfig = (str: string) => `${layoutConfig.app.title}-${str}`
+// Cookie names must be valid ASCII tokens (do not use layoutConfig.app.title, which may be Arabic/contain spaces)
+export const namespaceConfig = (str: string) => `vuexy-${str}`
 
 export const cookieRef = <T>(key: string, defaultValue: T) => {
   return useCookie<T>(namespaceConfig(key), { default: () => defaultValue })

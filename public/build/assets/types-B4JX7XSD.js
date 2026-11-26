@@ -1,0 +1,1 @@
+const e={draft:{label:"مسودّة",color:"secondary",icon:"tabler-pencil"},active:{label:"نشطة",color:"success",icon:"tabler-flame"},ended:{label:"منتهية",color:"error",icon:"tabler-flag-check"}};export{e as c};

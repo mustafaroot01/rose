@@ -23,7 +23,7 @@ class AccountTypeController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = AccountType::query()->withCount('users');
+        $query = AccountType::query()->withCount(['users', 'citizens']);
 
         $query->when($request->filled('q'), function ($q) use ($request) {
             $term = $request->string('q');
@@ -38,7 +38,10 @@ class AccountTypeController extends Controller
             ? $request->input('sortBy')
             : 'created_at';
         $order = $request->input('orderBy') === 'asc' ? 'asc' : 'desc';
-        $query->orderBy($sortBy, $order);
+        // "عدد المستخدمين" = مستخدمو التطبيق + الموظفون
+        $sortBy === 'users_count'
+            ? $query->orderByRaw("(citizens_count + users_count) $order")
+            : $query->orderBy($sortBy, $order);
 
         $perPage = (int) $request->input('itemsPerPage', 10);
         $perPage = $perPage < 1 ? $query->count() ?: 1 : $perPage;
@@ -57,7 +60,7 @@ class AccountTypeController extends Controller
 
         return response()->json([
             'message' => 'تمت إضافة نوع الحساب بنجاح.',
-            'data' => new AccountTypeResource($type->loadCount('users')),
+            'data' => new AccountTypeResource($type->loadCount(['users', 'citizens'])),
         ], 201);
     }
 
@@ -67,7 +70,7 @@ class AccountTypeController extends Controller
 
         return response()->json([
             'message' => 'تم تحديث نوع الحساب بنجاح.',
-            'data' => new AccountTypeResource($accountType->loadCount('users')),
+            'data' => new AccountTypeResource($accountType->loadCount(['users', 'citizens'])),
         ]);
     }
 
@@ -77,7 +80,7 @@ class AccountTypeController extends Controller
 
         return response()->json([
             'message' => $accountType->is_active ? 'تم إظهار النوع.' : 'تم إخفاء النوع.',
-            'data' => new AccountTypeResource($accountType->loadCount('users')),
+            'data' => new AccountTypeResource($accountType->loadCount(['users', 'citizens'])),
         ]);
     }
 

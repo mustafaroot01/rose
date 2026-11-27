@@ -29,4 +29,10 @@ class AccountType extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    /** مستخدمو التطبيق (المواطنون) — هم أغلب أصحاب أنواع الحسابات. */
+    public function citizens(): HasMany
+    {
+        return $this->hasMany(Citizen::class);
+    }
 }

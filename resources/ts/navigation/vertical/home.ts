@@ -19,4 +19,9 @@ export default [
     icon: { icon: 'tabler-settings' },
     to: 'settings',
   },
+  {
+    title: 'nav.appSettings',
+    icon: { icon: 'tabler-device-mobile-cog' },
+    to: 'app-settings',
+  },
 ]

@@ -1,0 +1,1 @@
+import{_ as e}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{c as t,o as s,e as a,v as o}from"./main-DRWdxVSB.js";const r={},c={class:"h-100 d-flex align-center justify-center text-medium-emphasis"};function n(i,l){return s(),t("div",c,[a("span",null," © "+o(new Date().getFullYear())+" — جميع الحقوق محفوظة ",1)])}const m=e(r,[["render",n]]);export{m as default};

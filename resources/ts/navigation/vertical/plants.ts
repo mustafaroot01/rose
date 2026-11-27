@@ -30,4 +30,9 @@ export default [
     icon: { icon: 'tabler-slideshow' },
     to: 'banners',
   },
+  {
+    title: 'nav.blog',
+    icon: { icon: 'tabler-news' },
+    to: 'blog',
+  },
 ]

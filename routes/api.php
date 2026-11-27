@@ -41,6 +41,10 @@ Route::get('campaigns', [\App\Http\Controllers\Api\CampaignController::class, 'i
 Route::get('campaigns/{slug}', [\App\Http\Controllers\Api\CampaignController::class, 'show']);
 Route::get('leaderboard', [\App\Http\Controllers\Api\LeaderboardController::class, 'index']);
 Route::get('contents/{key}', [\App\Http\Controllers\Api\AppContentController::class, 'show']);
+// المدونة + إعدادات التطبيق (عامة)
+Route::get('posts', [\App\Http\Controllers\Api\PublicAppController::class, 'posts']);
+Route::get('posts/{id}', [\App\Http\Controllers\Api\PublicAppController::class, 'post'])->whereNumber('id');
+Route::get('app-config', [\App\Http\Controllers\Api\PublicAppController::class, 'config']);
 Route::get('campaigns/{campaign}/participants', [\App\Http\Controllers\Api\CampaignController::class, 'participants']);
 
 // نقاط عامّة تُستخدم في فورم التسجيل
@@ -269,6 +273,16 @@ Route::middleware(['auth:sanctum', 'admin', 'admin.audit'])->prefix('admin')->gr
     Route::get('contents', [\App\Http\Controllers\Api\Admin\AppContentController::class, 'index']);
     Route::get('contents/{key}', [\App\Http\Controllers\Api\Admin\AppContentController::class, 'show']);
     Route::put('contents/{key}', [\App\Http\Controllers\Api\Admin\AppContentController::class, 'update']);
+
+    // المدونة
+    Route::get('posts', [\App\Http\Controllers\Api\Admin\PostController::class, 'index']);
+    Route::post('posts', [\App\Http\Controllers\Api\Admin\PostController::class, 'store']);
+    Route::put('posts/{post}', [\App\Http\Controllers\Api\Admin\PostController::class, 'update']);
+    Route::delete('posts/{post}', [\App\Http\Controllers\Api\Admin\PostController::class, 'destroy']);
+
+    // إعدادات التطبيق (روابط التواصل + قفل التحديث)
+    Route::get('app-settings', [\App\Http\Controllers\Api\Admin\AppSettingController::class, 'show']);
+    Route::put('app-settings', [\App\Http\Controllers\Api\Admin\AppSettingController::class, 'update']);
 
     // طلبات حذف الحسابات
     Route::get('account-deletions', [\App\Http\Controllers\Api\Admin\AccountDeletionController::class, 'index']);

@@ -44,7 +44,8 @@ class PublicAppController extends Controller
             ],
             'update' => [
                 'force' => (bool) $s['force_update'],
-                'min_version' => $s['min_version'] ?: null,
+                'min_version_android' => $s['min_version_android'] ?: null,
+                'min_version_ios' => $s['min_version_ios'] ?: null,
                 'message' => $s['update_message'],
                 'android_url' => $s['android_url'] ?: null,
                 'ios_url' => $s['ios_url'] ?: null,

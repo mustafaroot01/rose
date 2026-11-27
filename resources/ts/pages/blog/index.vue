@@ -290,7 +290,7 @@ const doDelete = async () => {
             v-if="item.link_url"
             :href="item.link_url"
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
             class="text-truncate d-inline-block"
             style="max-inline-size: 14rem;"
             dir="ltr"

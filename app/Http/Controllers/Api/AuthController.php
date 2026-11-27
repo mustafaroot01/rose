@@ -225,6 +225,49 @@ class AuthController extends Controller
         return response()->json($this->userData($request->user()));
     }
 
+    /**
+     * تعديل الملف الشخصي لعضو الإدارة (الاسم، البريد، الصورة) — صفحة الإعدادات في الداشبورد.
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $data = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
+            'avatar' => ['nullable', 'image', 'max:5120'],
+        ]);
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            }
+            $data['avatar'] = $request->file('avatar')->store('avatars/staff', 'public');
+        } else {
+            unset($data['avatar']);
+        }
+
+        $user->update($data);
+
+        return response()->json(['message' => 'تم حفظ الملف الشخصي.', 'data' => $this->userData($user->fresh())]);
+    }
+
+    /**
+     * تغيير كلمة المرور لعضو الإدارة (يتطلب كلمة المرور الحالية).
+     */
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password:sanctum'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'current_password.current_password' => 'كلمة المرور الحالية غير صحيحة.',
+        ]);
+
+        $request->user()->forceFill(['password' => Hash::make($request->input('password'))])->save();
+
+        return response()->json(['message' => 'تم تغيير كلمة المرور.']);
+    }
+
     // ===================== Helpers =====================
 
     /**
@@ -252,7 +295,7 @@ class AuthController extends Controller
             'phone' => $user->phone,
             'email' => $user->email,
             'role' => $user->role,
-            'avatar' => null,
+            'avatar' => $user->avatar ? url('api/media/'.$user->avatar) : null,
         ];
     }
 

@@ -1,1 +1,0 @@
-import{ab as s,ac as r,ad as o,b as c,I as n,x as m,ae as l,af as d}from"./main-DRWdxVSB.js";const p=r({opacity:[Number,String],...d(),...l()},"VCardText"),x=s()({name:"VCardText",props:p(),setup(a,e){let{slots:t}=e;return o(()=>c(a.tag,{class:m(["v-card-text",a.class]),style:n([{"--v-card-text-opacity":a.opacity},a.style])},t)),{}}});export{x as V};

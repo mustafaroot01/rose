@@ -138,7 +138,7 @@ const formatDate = (iso?: string | null) =>
                   v-if="campaign.sponsor.url"
                   :href="campaign.sponsor.url"
                   target="_blank"
-                  rel="noopener"
+                  rel="noopener noreferrer"
                   class="font-weight-medium"
                 >{{ campaign.sponsor.name }}</a>
                 <span

@@ -23,18 +23,22 @@ class AppSettingController extends Controller
             'social_whatsapp' => ['nullable', 'string', 'max:500'],
             'social_tiktok' => ['nullable', 'url', 'max:500'],
             'force_update' => ['sometimes', 'boolean'],
-            'min_version' => ['nullable', 'string', 'max:20', 'regex:/^\d+(\.\d+){0,2}$/'],
+            'min_version_android' => ['nullable', 'string', 'max:20', 'regex:/^\d+(\.\d+){0,2}$/'],
+            'min_version_ios' => ['nullable', 'string', 'max:20', 'regex:/^\d+(\.\d+){0,2}$/'],
             'update_message' => ['nullable', 'string', 'max:500'],
             'android_url' => ['nullable', 'url', 'max:500'],
             'ios_url' => ['nullable', 'url', 'max:500'],
         ], [
-            'min_version.regex' => 'رقم الإصدار يجب أن يكون بالشكل 1.2.0',
+            'min_version_android.regex' => 'رقم الإصدار يجب أن يكون بالشكل 1.2.0',
+            'min_version_ios.regex' => 'رقم الإصدار يجب أن يكون بالشكل 1.2.0',
         ]);
 
-        if (($data['force_update'] ?? false) && empty($data['min_version'])) {
+        if (($data['force_update'] ?? false) && empty($data['min_version_android']) && empty($data['min_version_ios'])) {
+            $msg = 'حدّد أقل إصدار لمنصة واحدة على الأقل قبل تفعيل قفل التحديث.';
+
             return response()->json([
-                'message' => 'حدّد رقم أقل إصدار مسموح قبل تفعيل قفل التحديث.',
-                'errors' => ['min_version' => ['مطلوب عند تفعيل قفل التحديث.']],
+                'message' => $msg,
+                'errors' => ['min_version_android' => [$msg], 'min_version_ios' => [$msg]],
             ], 422);
         }
 

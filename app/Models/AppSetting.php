@@ -22,9 +22,11 @@ class AppSetting extends Model
         'social_facebook' => '',
         'social_whatsapp' => '',
         'social_tiktok' => '',
-        // قفل التحديث: عند التفعيل، النسخ الأقدم من min_version لا تعمل حتى يُحدَّث التطبيق
+        // قفل التحديث: عند التفعيل، النسخ الأقدم من أقل إصدار لمنصّتها لا تعمل حتى تُحدَّث.
+        // لكل منصة رقمها (فارغ = لا قفل على تلك المنصة).
         'force_update' => false,
-        'min_version' => '',
+        'min_version_android' => '',
+        'min_version_ios' => '',
         'update_message' => 'يتوفر إصدار جديد من التطبيق. يرجى التحديث للمتابعة.',
         'android_url' => '',
         'ios_url' => '',

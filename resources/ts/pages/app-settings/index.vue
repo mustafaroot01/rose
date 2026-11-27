@@ -6,7 +6,8 @@ interface AppSettings {
   social_whatsapp: string
   social_tiktok: string
   force_update: boolean | string
-  min_version: string
+  min_version_android: string
+  min_version_ios: string
   update_message: string
   android_url: string
   ios_url: string
@@ -21,7 +22,8 @@ const form = ref({
   social_whatsapp: '',
   social_tiktok: '',
   force_update: false,
-  min_version: '',
+  min_version_android: '',
+  min_version_ios: '',
   update_message: '',
   android_url: '',
   ios_url: '',
@@ -43,7 +45,8 @@ const fill = (s?: AppSettings) => {
     social_whatsapp: s.social_whatsapp ?? '',
     social_tiktok: s.social_tiktok ?? '',
     force_update: toBool(s.force_update),
-    min_version: s.min_version ?? '',
+    min_version_android: s.min_version_android ?? '',
+    min_version_ios: s.min_version_ios ?? '',
     update_message: s.update_message ?? '',
     android_url: s.android_url ?? '',
     ios_url: s.ios_url ?? '',
@@ -57,6 +60,12 @@ const socials = [
   { key: 'social_facebook', label: 'فيسبوك', icon: 'tabler-brand-facebook', color: '#1877F2', placeholder: 'https://facebook.com/...' },
   { key: 'social_whatsapp', label: 'واتساب', icon: 'tabler-brand-whatsapp', color: '#25D366', placeholder: '9647XXXXXXXXX أو https://wa.me/...' },
   { key: 'social_tiktok', label: 'تيك توك', icon: 'tabler-brand-tiktok', color: '#111111', placeholder: 'https://tiktok.com/@...' },
+] as const
+
+// كل منصة: أقل إصدار + رابط متجرها
+const platforms = [
+  { name: 'أندرويد', icon: 'tabler-brand-android', color: '#3DDC84', version: 'min_version_android', store: 'android_url', storeLabel: 'رابط Google Play', storeIcon: 'tabler-brand-google-play', storePlaceholder: 'https://play.google.com/store/apps/details?id=...' },
+  { name: 'آيفون', icon: 'tabler-brand-apple', color: '#8E8E93', version: 'min_version_ios', store: 'ios_url', storeLabel: 'رابط App Store', storeIcon: 'tabler-brand-apple', storePlaceholder: 'https://apps.apple.com/app/...' },
 ] as const
 
 const save = async () => {
@@ -158,15 +167,6 @@ const save = async () => {
               :label="form.force_update ? 'القفل مفعّل — النسخ القديمة لن تعمل' : 'القفل متوقف'"
               hide-details
             />
-            <AppTextField
-              v-model="form.min_version"
-              label="أقل إصدار مسموح"
-              placeholder="1.2.0"
-              dir="ltr"
-              hint="النسخ الأقدم من هذا الرقم تُقفل. مثال: 1.0.1"
-              persistent-hint
-              :error-messages="errors.min_version"
-            />
             <AppTextarea
               v-model="form.update_message"
               label="رسالة التحديث"
@@ -175,22 +175,70 @@ const save = async () => {
               auto-grow
               :error-messages="errors.update_message"
             />
-            <AppTextField
-              v-model="form.android_url"
-              label="رابط Google Play"
-              placeholder="https://play.google.com/store/apps/details?id=..."
-              dir="ltr"
-              prepend-inner-icon="tabler-brand-google-play"
-              :error-messages="errors.android_url"
-            />
-            <AppTextField
-              v-model="form.ios_url"
-              label="رابط App Store"
-              placeholder="https://apps.apple.com/app/..."
-              dir="ltr"
-              prepend-inner-icon="tabler-brand-apple"
-              :error-messages="errors.ios_url"
-            />
+
+            <!-- لكل منصة أقل إصدار ورابط متجرها -->
+            <div
+              v-for="p in platforms"
+              :key="p.version"
+              class="platform-box"
+            >
+              <div class="d-flex align-center gap-2 mb-3">
+                <VIcon
+                  :icon="p.icon"
+                  :color="p.color"
+                  size="22"
+                />
+                <span class="text-body-1 font-weight-medium text-high-emphasis">{{ p.name }}</span>
+                <VChip
+                  v-if="form.force_update && form[p.version]"
+                  size="x-small"
+                  color="error"
+                  variant="tonal"
+                  class="ms-auto"
+                >
+                  مقفل لأقدم من {{ form[p.version] }}
+                </VChip>
+                <VChip
+                  v-else
+                  size="x-small"
+                  variant="tonal"
+                  class="ms-auto"
+                >
+                  بدون قفل
+                </VChip>
+              </div>
+              <VRow>
+                <VCol
+                  cols="12"
+                  sm="4"
+                >
+                  <AppTextField
+                    v-model="form[p.version]"
+                    label="أقل إصدار مسموح"
+                    placeholder="1.0.1"
+                    dir="ltr"
+                    clearable
+                    :error-messages="errors[p.version]"
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  sm="8"
+                >
+                  <AppTextField
+                    v-model="form[p.store]"
+                    :label="p.storeLabel"
+                    :placeholder="p.storePlaceholder"
+                    dir="ltr"
+                    :prepend-inner-icon="p.storeIcon"
+                    :error-messages="errors[p.store]"
+                  />
+                </VCol>
+              </VRow>
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              اترك أقل إصدار فارغاً لمنصة ما حتى لا تُقفل. رقم إصدار التطبيق الحالي يظهر بأسفل صفحة الإعدادات في التطبيق (مثل 1.0.0).
+            </div>
           </VCardText>
         </VCard>
       </VCol>
@@ -216,3 +264,11 @@ const save = async () => {
     </VSnackbar>
   </section>
 </template>
+
+<style lang="scss" scoped>
+.platform-box {
+  padding: 14px;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+}
+</style>

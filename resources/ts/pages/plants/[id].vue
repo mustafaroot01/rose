@@ -277,6 +277,7 @@ const details = computed(() => {
               class="mt-4"
               :href="mapUrl"
               target="_blank"
+              rel="noopener noreferrer"
             >
               فتح الموقع على الخريطة
             </VBtn>

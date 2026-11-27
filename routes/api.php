@@ -123,6 +123,12 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+// الملف الشخصي لعضو الإدارة (صفحة الإعدادات في الداشبورد)
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('profile', [AuthController::class, 'updateProfile']);
+    Route::put('profile/password', [AuthController::class, 'updatePassword']);
+});
+
 /*
 |--------------------------------------------------------------------------
 | مصادقة المواطن (جدول citizens منفصل)

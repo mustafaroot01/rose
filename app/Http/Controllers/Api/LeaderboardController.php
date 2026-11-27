@@ -20,6 +20,10 @@ class LeaderboardController extends Controller
      * النقاط = (عدد النباتات المعتمدة × 10) + (عدد سقياتها × 2).
      * أول 3 يُعتبرون "أبطال التشجير".
      *
+     * فلاتر اختيارية:
+     *  - governorate_id: أبطال محافظة معيّنة (حسب محافظة المواطن المسجّلة).
+     *  - period=month: نشاط هذا الشهر فقط (النباتات المضافة والسقيات خلال الشهر الحالي).
+     *
      * استعلام تجميعي واحد (بدل N+1): JOIN + GROUP BY.
      */
     public function index(Request $request): JsonResponse
@@ -28,27 +32,40 @@ class LeaderboardController extends Controller
         $pp = self::PLANT_POINTS;
         $wp = self::WATER_POINTS;
 
-        // كل مواطن زرع نبتة (معتمدة أو قيد المراجعة) يظهر بالقائمة — حتى 25 شخصاً.
-        // النقاط تُحسب من النباتات المعتمدة وسقياتها فقط (كما هي القاعدة)،
-        // وعند تساوي النقاط يُرتَّب حسب عدد النباتات المزروعة.
+        $governorateId = $request->integer('governorate_id') ?: null;
+        $since = $request->input('period') === 'month' ? now()->startOfMonth() : null;
+
+        // شرط الفترة على النباتات (فارغ = كل الأوقات)
+        $inPeriod = $since ? 'plants.created_at >= ?' : '1 = 1';
+        $periodBindings = $since ? [$since] : [];
+        $approvedInPeriod = "plants.status = 'approved' AND $inPeriod";
+
         $rows = DB::table('citizens')
             ->join('plants', function ($j) {
                 $j->on('plants.citizen_id', '=', 'citizens.id')
                     ->whereIn('plants.status', ['approved', 'pending'])
                     ->whereNull('plants.deleted_at');
             })
-            ->leftJoin('plant_waterings', 'plant_waterings.plant_id', '=', 'plants.id')
+            // السقيات: كلها، أو سقيات هذا الشهر فقط عند period=month
+            ->leftJoin('plant_waterings', function ($j) use ($since) {
+                $j->on('plant_waterings.plant_id', '=', 'plants.id');
+                if ($since) {
+                    $j->where('plant_waterings.created_at', '>=', $since);
+                }
+            })
+            ->when($governorateId, fn ($q) => $q->where('citizens.governorate_id', $governorateId))
             ->groupBy('citizens.id', 'citizens.name', 'citizens.avatar')
-            ->select([
-                'citizens.id',
-                'citizens.name',
-                'citizens.avatar',
-                DB::raw("COUNT(DISTINCT CASE WHEN plants.status = 'approved' THEN plants.id END) as plants_count"),
-                DB::raw("COUNT(CASE WHEN plants.status = 'approved' THEN plant_waterings.id END) as waterings"),
-                DB::raw('COUNT(DISTINCT plants.id) as all_plants'),
-                DB::raw("(COUNT(DISTINCT CASE WHEN plants.status = 'approved' THEN plants.id END) * $pp"
-                    ." + COUNT(CASE WHEN plants.status = 'approved' THEN plant_waterings.id END) * $wp) as score"),
-            ])
+            ->select(['citizens.id', 'citizens.name', 'citizens.avatar'])
+            ->selectRaw("COUNT(DISTINCT CASE WHEN $approvedInPeriod THEN plants.id END) as plants_count", $periodBindings)
+            ->selectRaw("COUNT(CASE WHEN plants.status = 'approved' THEN plant_waterings.id END) as waterings")
+            ->selectRaw("COUNT(DISTINCT CASE WHEN $inPeriod THEN plants.id END) as all_plants", $periodBindings)
+            ->selectRaw(
+                "(COUNT(DISTINCT CASE WHEN $approvedInPeriod THEN plants.id END) * $pp"
+                ." + COUNT(CASE WHEN plants.status = 'approved' THEN plant_waterings.id END) * $wp) as score",
+                $periodBindings,
+            )
+            // ضمن فترة الشهر: من له نشاط خلاله فقط
+            ->when($since, fn ($q) => $q->havingRaw('(all_plants + waterings) > 0'))
             ->orderByDesc('score')
             ->orderByDesc('all_plants')
             ->orderBy('citizens.id')

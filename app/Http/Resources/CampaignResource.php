@@ -17,6 +17,12 @@ class CampaignResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'cover' => $this->resource->coverUrl(),
+            // الجهة الراعية (null إن لم تُحدَّد)
+            'sponsor' => $this->sponsor_name ? [
+                'name' => $this->sponsor_name,
+                'logo' => $this->resource->sponsorLogoUrl(),
+                'url' => $this->sponsor_url,
+            ] : null,
             'governorate' => $this->whenLoaded('governorate', fn () => $this->governorate?->only('id', 'name')),
             'district' => $this->whenLoaded('district', fn () => $this->district?->only('id', 'name')),
             'goal_trees' => $this->goal_trees,
@@ -27,6 +33,8 @@ class CampaignResource extends JsonResource
             'ends_at' => $this->ends_at?->toDateString(),
             'status' => $this->status,
             'is_joined' => $this->when(isset($this->is_joined), fn () => (bool) $this->is_joined),
+            // عدد أشجار المستخدم المعتمدة ضمن الحملة (لشهادة المشاركة) — في صفحة الحملة فقط
+            'my_trees' => $this->when(isset($this->my_trees), fn () => (int) $this->my_trees),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

@@ -56,6 +56,14 @@ class CampaignController extends Controller
             ? $campaign->participants()->where('citizen_id', $citizenId)->exists()
             : false;
 
+        // أشجار المستخدم المعتمدة ضمن الحملة — تُستخدم لشهادة المشاركة
+        if ($citizenId) {
+            $campaign->my_trees = $campaign->plants()
+                ->where('citizen_id', $citizenId)
+                ->where('status', 'approved')
+                ->count();
+        }
+
         return response()->json(['data' => new CampaignResource($campaign)]);
     }
 

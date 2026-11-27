@@ -15,6 +15,9 @@ class Campaign extends Model
         'slug',
         'description',
         'cover_path',
+        'sponsor_name',
+        'sponsor_logo_path',
+        'sponsor_url',
         'governorate_id',
         'district_id',
         'goal_trees',
@@ -88,6 +91,11 @@ class Campaign extends Model
     public function coverUrl(): ?string
     {
         return $this->cover_path ? url('api/media/'.$this->cover_path) : null;
+    }
+
+    public function sponsorLogoUrl(): ?string
+    {
+        return $this->sponsor_logo_path ? url('api/media/'.$this->sponsor_logo_path) : null;
     }
 
     /**

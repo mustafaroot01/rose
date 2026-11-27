@@ -58,6 +58,10 @@ class CampaignController extends Controller
             $data['cover_path'] = $request->file('cover')->store('campaigns', 'public');
         }
 
+        if ($request->hasFile('sponsor_logo')) {
+            $data['sponsor_logo_path'] = $request->file('sponsor_logo')->store('campaigns/sponsors', 'public');
+        }
+
         $data['created_by'] = $request->user()->id;
 
         $campaign = Campaign::create($data);
@@ -77,6 +81,16 @@ class CampaignController extends Controller
                 Storage::disk('public')->delete($campaign->cover_path);
             }
             $data['cover_path'] = $request->file('cover')->store('campaigns', 'public');
+        }
+
+        // شعار الراعي: رفع جديد يستبدل القديم، أو حذفه صراحة
+        if ($request->hasFile('sponsor_logo') || $request->boolean('remove_sponsor_logo')) {
+            if ($campaign->sponsor_logo_path) {
+                Storage::disk('public')->delete($campaign->sponsor_logo_path);
+            }
+            $data['sponsor_logo_path'] = $request->hasFile('sponsor_logo')
+                ? $request->file('sponsor_logo')->store('campaigns/sponsors', 'public')
+                : null;
         }
 
         $campaign->update($data);
@@ -129,8 +143,10 @@ class CampaignController extends Controller
 
     public function destroy(Campaign $campaign): JsonResponse
     {
-        if ($campaign->cover_path) {
-            Storage::disk('public')->delete($campaign->cover_path);
+        foreach ([$campaign->cover_path, $campaign->sponsor_logo_path] as $path) {
+            if ($path) {
+                Storage::disk('public')->delete($path);
+            }
         }
 
         $campaign->delete();
@@ -152,6 +168,9 @@ class CampaignController extends Controller
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'status' => ['sometimes', Rule::in(['draft', 'active', 'ended'])],
+            'sponsor_name' => ['nullable', 'string', 'max:255'],
+            'sponsor_url' => ['nullable', 'url', 'max:500'],
+            'sponsor_logo' => ['nullable', 'image', 'max:5120'],
         ]);
     }
 }

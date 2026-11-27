@@ -1,0 +1,1 @@
+import{_ as o}from"./NavbarShortcuts.vue_vue_type_script_setup_true_lang-DXLc-23h.js";import"./vue3-perfect-scrollbar-BdqZ3zsY.js";import"./main-Czsuy7Ec.js";import"./VCard-BxD2_0Cr.js";import"./VAvatar-BhKzgUrd.js";import"./VCardText-DMbXZ324.js";import"./VDivider-B-D5BQqO.js";import"./VRow-BWCbR068.js";export{o as default};

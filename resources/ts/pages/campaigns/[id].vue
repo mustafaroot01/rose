@@ -119,6 +119,35 @@ const formatDate = (iso?: string | null) =>
               {{ campaign.description }}
             </p>
 
+            <!-- الجهة الراعية -->
+            <div
+              v-if="campaign.sponsor"
+              class="d-flex align-center gap-3 mt-3 pa-3 rounded border"
+            >
+              <VAvatar
+                v-if="campaign.sponsor.logo"
+                :image="campaign.sponsor.logo"
+                rounded
+                size="44"
+              />
+              <div>
+                <div class="text-caption text-disabled">
+                  برعاية
+                </div>
+                <a
+                  v-if="campaign.sponsor.url"
+                  :href="campaign.sponsor.url"
+                  target="_blank"
+                  rel="noopener"
+                  class="font-weight-medium"
+                >{{ campaign.sponsor.name }}</a>
+                <span
+                  v-else
+                  class="font-weight-medium"
+                >{{ campaign.sponsor.name }}</span>
+              </div>
+            </div>
+
             <!-- شريط الإنجاز -->
             <div class="mt-4">
               <div class="d-flex justify-space-between mb-1">

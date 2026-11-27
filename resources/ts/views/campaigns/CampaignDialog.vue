@@ -20,9 +20,16 @@ const form = ref({
   starts_at: '' as string | null,
   ends_at: '' as string | null,
   status: 'draft' as 'draft' | 'active' | 'ended',
+  sponsor_name: '',
+  sponsor_url: '',
 })
 const coverFile = ref<File | null>(null)
 const coverPreview = ref<string | null>(null)
+
+// الجهة الراعية (اختياري): شعار يُرفع، أو يُحذف صراحة عند التعديل
+const sponsorLogoFile = ref<File | null>(null)
+const sponsorLogoPreview = ref<string | null>(null)
+const removeSponsorLogo = ref(false)
 const saving = ref(false)
 const errors = ref<Record<string, string[]>>({})
 
@@ -42,6 +49,9 @@ watch(() => props.modelValue, val => {
     return
   errors.value = {}
   coverFile.value = null
+  sponsorLogoFile.value = null
+  removeSponsorLogo.value = false
+  sponsorLogoPreview.value = props.item?.sponsor?.logo ?? null
   if (props.item) {
     coverPreview.value = props.item.cover
     form.value = {
@@ -52,11 +62,13 @@ watch(() => props.modelValue, val => {
       starts_at: props.item.starts_at,
       ends_at: props.item.ends_at,
       status: props.item.status,
+      sponsor_name: props.item.sponsor?.name ?? '',
+      sponsor_url: props.item.sponsor?.url ?? '',
     }
   }
   else {
     coverPreview.value = null
-    form.value = { title: '', description: '', governorate_id: undefined, goal_trees: 100, starts_at: '', ends_at: '', status: 'draft' }
+    form.value = { title: '', description: '', governorate_id: undefined, goal_trees: 100, starts_at: '', ends_at: '', status: 'draft', sponsor_name: '', sponsor_url: '' }
   }
 })
 
@@ -66,6 +78,21 @@ const onCoverPicked = (e: Event) => {
     return
   coverFile.value = file
   coverPreview.value = URL.createObjectURL(file)
+}
+
+const onSponsorLogoPicked = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file)
+    return
+  sponsorLogoFile.value = file
+  sponsorLogoPreview.value = URL.createObjectURL(file)
+  removeSponsorLogo.value = false
+}
+
+const clearSponsorLogo = () => {
+  sponsorLogoFile.value = null
+  sponsorLogoPreview.value = null
+  removeSponsorLogo.value = true
 }
 
 const close = () => emit('update:modelValue', false)
@@ -87,6 +114,14 @@ const save = async () => {
     body.append('status', form.value.status)
     if (coverFile.value)
       body.append('cover', coverFile.value)
+
+    // نرسلها دائماً: الفارغ يمسح القيمة السابقة
+    body.append('sponsor_name', form.value.sponsor_name ?? '')
+    body.append('sponsor_url', form.value.sponsor_url ?? '')
+    if (sponsorLogoFile.value)
+      body.append('sponsor_logo', sponsorLogoFile.value)
+    else if (removeSponsorLogo.value)
+      body.append('remove_sponsor_logo', '1')
 
     const url = isEdit.value ? `/admin/campaigns/${props.item!.id}` : '/admin/campaigns'
     if (isEdit.value)
@@ -214,6 +249,81 @@ const save = async () => {
               :items="statusOptions"
             />
           </VCol>
+
+          <!-- الجهة الراعية (اختياري) — تظهر في صفحة الحملة بالتطبيق وفي شهادة المشاركة -->
+          <VCol cols="12">
+            <VDivider class="mb-4" />
+            <div class="text-body-1 font-weight-medium mb-3">
+              الجهة الراعية (اختياري)
+            </div>
+            <div class="d-flex align-center gap-4">
+              <div
+                class="sponsor-logo"
+                @click="($refs.sponsorInput as HTMLInputElement).click()"
+              >
+                <VImg
+                  v-if="sponsorLogoPreview"
+                  :src="sponsorLogoPreview"
+                  contain
+                  width="72"
+                  height="72"
+                />
+                <VIcon
+                  v-else
+                  icon="tabler-photo-plus"
+                  size="26"
+                />
+                <input
+                  ref="sponsorInput"
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  @change="onSponsorLogoPicked"
+                >
+              </div>
+              <div class="d-flex flex-column gap-1">
+                <span class="text-caption">شعار الراعي — اضغط على المربع لاختياره</span>
+                <VBtn
+                  v-if="sponsorLogoPreview"
+                  size="small"
+                  variant="text"
+                  color="error"
+                  prepend-icon="tabler-trash"
+                  @click="clearSponsorLogo"
+                >
+                  حذف الشعار
+                </VBtn>
+              </div>
+            </div>
+            <div
+              v-if="errors.sponsor_logo"
+              class="text-error text-caption mt-1"
+            >
+              {{ errors.sponsor_logo[0] }}
+            </div>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <AppTextField
+              v-model="form.sponsor_name"
+              label="اسم الجهة الراعية"
+              :error-messages="errors.sponsor_name"
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <AppTextField
+              v-model="form.sponsor_url"
+              label="رابط الراعي (اختياري)"
+              placeholder="https://"
+              dir="ltr"
+              :error-messages="errors.sponsor_url"
+            />
+          </VCol>
         </VRow>
       </VCardText>
       <VCardText class="d-flex justify-end gap-3 pt-0">
@@ -239,6 +349,20 @@ const save = async () => {
 <style lang="scss" scoped>
 .cover-picker {
   cursor: pointer;
+}
+
+.sponsor-logo {
+  display: flex;
+  overflow: hidden;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 10px;
+  block-size: 76px;
+  color: rgba(var(--v-theme-on-surface), var(--v-disabled-opacity));
+  cursor: pointer;
+  inline-size: 76px;
 }
 
 .cover-placeholder {

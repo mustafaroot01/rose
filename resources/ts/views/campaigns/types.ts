@@ -13,6 +13,7 @@ export interface Campaign {
   starts_at: string | null
   ends_at: string | null
   status: 'draft' | 'active' | 'ended'
+  sponsor?: { name: string, logo: string | null, url: string | null } | null
   created_at?: string
 }
 

@@ -23,6 +23,10 @@ class CampaignController extends Controller
         $campaigns = Campaign::query()
             ->with(['governorate:id,name'])
             ->withCount('participants')
+            ->withApprovedCount()
+            ->when($citizenId, fn ($q) => $q->withExists([
+                'participants as is_joined_flag' => fn ($p) => $p->where('citizen_id', $citizenId),
+            ]))
             ->when(
                 $includeEnded,
                 fn ($q) => $q->whereIn('status', ['active', 'ended'])
@@ -31,10 +35,8 @@ class CampaignController extends Controller
             )
             ->latest()
             ->get()
-            ->each(function (Campaign $c) use ($citizenId) {
-                $c->is_joined = $citizenId
-                    ? $c->participants()->where('citizen_id', $citizenId)->exists()
-                    : false;
+            ->each(function (Campaign $c) {
+                $c->is_joined = (bool) ($c->is_joined_flag ?? false);
             });
 
         return response()->json(['data' => CampaignResource::collection($campaigns)]);
@@ -46,6 +48,7 @@ class CampaignController extends Controller
         $campaign = Campaign::where('slug', $slug)
             ->with(['governorate:id,name', 'district:id,name'])
             ->withCount('participants')
+            ->withApprovedCount()
             ->firstOrFail();
 
         $citizenId = optional($request->user('sanctum'))->id;

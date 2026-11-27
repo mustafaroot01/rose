@@ -92,7 +92,7 @@ class UserController extends Controller
      */
     public function plants(Request $request, User $user): AnonymousResourceCollection
     {
-        $query = $user->plants()->with(['category', 'governorate'])->withCount('reports')->latest();
+        $query = $user->plants()->with(['category', 'governorate', 'images'])->withCount('reports')->latest();
 
         $perPage = (int) $request->input('itemsPerPage', 10);
         $perPage = $perPage < 1 ? $query->count() ?: 1 : $perPage;

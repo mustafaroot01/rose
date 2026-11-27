@@ -90,11 +90,29 @@ class Campaign extends Model
         return $this->cover_path ? url('api/media/'.$this->cover_path) : null;
     }
 
-    /** عدد الأشجار المعتمدة ضمن الحملة. */
+    /**
+     * تحميل عدد الأشجار المعتمدة ضمن نفس الاستعلام (بدل استعلام لكل حملة):
+     * Campaign::withApprovedCount()->get()
+     */
+    public function scopeWithApprovedCount($query)
+    {
+        return $query->withCount(['plants as approved_plants_count' => fn ($q) => $q->where('status', 'approved')]);
+    }
+
+    /** عدد الأشجار المعتمدة ضمن الحملة (يستخدم العدّ المحمَّل مسبقاً إن وُجد). */
     public function approvedCount(): int
     {
-        return $this->plants()->where('status', 'approved')->count();
+        if (array_key_exists('approved_plants_count', $this->attributes)) {
+            return (int) $this->attributes['approved_plants_count'];
+        }
+
+        // نخزّنه في خاصية خارج الأعمدة حتى لا يتكرر الاستعلام (trees_count + progress)
+        // ولا يدخل في عمليات الحفظ.
+        return $this->approvedCountCache ??= $this->plants()->where('status', 'approved')->count();
     }
+
+    /** ذاكرة مؤقتة لعدد الأشجار المعتمدة (ليست عموداً في الجدول). */
+    private ?int $approvedCountCache = null;
 
     /** نسبة الإنجاز مقابل الهدف (0..100). */
     public function progressPercent(): int

@@ -11,8 +11,6 @@ class CampaignResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $approved = $this->whenCounted('plants') ?? $this->resource->approvedCount();
-
         return [
             'id' => $this->id,
             'title' => $this->title,

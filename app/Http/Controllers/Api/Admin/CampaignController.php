@@ -19,7 +19,8 @@ class CampaignController extends Controller
     {
         $query = Campaign::query()
             ->with(['governorate:id,name', 'district:id,name'])
-            ->withCount('participants');
+            ->withCount('participants')
+            ->withApprovedCount();
 
         $query->when($request->filled('q'), fn ($q) => $q->where('title', 'like', '%'.$request->string('q').'%'));
         $query->when($request->filled('status'), fn ($q) => $q->where('status', $request->input('status')));
@@ -45,7 +46,7 @@ class CampaignController extends Controller
     {
         return new CampaignResource(
             $campaign->load(['governorate:id,name', 'district:id,name', 'creator:id,name'])
-                ->loadCount('participants'),
+                ->loadCount(['participants', 'plants as approved_plants_count' => fn ($q) => $q->where('status', 'approved')]),
         );
     }
 
@@ -116,7 +117,7 @@ class CampaignController extends Controller
     public function plants(Request $request, Campaign $campaign): AnonymousResourceCollection
     {
         $query = $campaign->plants()
-            ->with(['category:id,name,color,icon', 'citizen:id,name', 'user:id,name'])
+            ->with(['category:id,name,color,icon', 'citizen:id,name', 'user:id,name', 'images'])
             ->withCount('reports')
             ->latest();
 

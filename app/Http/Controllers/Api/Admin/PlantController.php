@@ -19,7 +19,7 @@ class PlantController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $query = Plant::query()
-            ->with(['category', 'user', 'citizen', 'governorate', 'district', 'campaign:id,title'])
+            ->with(['category', 'user', 'citizen', 'governorate', 'district', 'campaign:id,title', 'images'])
             ->withCount(['reports', 'waterings', 'likes']);
 
         $query->when($request->filled('q'), function ($q) use ($request) {

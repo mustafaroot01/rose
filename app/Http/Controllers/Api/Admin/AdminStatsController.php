@@ -19,31 +19,55 @@ class AdminStatsController extends Controller
      */
     public function index(): JsonResponse
     {
+        // عدّادات مجمّعة: استعلام واحد لكل جدول بدل استعلام لكل حالة.
+        $plants = Plant::query()
+            ->toBase()
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(status = 'approved') as approved")
+            ->selectRaw("SUM(status = 'pending') as pending")
+            ->selectRaw("SUM(status = 'rejected') as rejected")
+            ->first();
+
+        $reports = PlantReport::query()
+            ->toBase()
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(status = 'new') as new_count")
+            ->selectRaw("SUM(status = 'in_review') as in_review")
+            ->selectRaw("SUM(status = 'action_taken') as action_taken")
+            ->selectRaw("SUM(status = 'dismissed') as dismissed")
+            ->first();
+
+        $citizens = Citizen::query()
+            ->toBase()
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(status = 'active') as active")
+            ->first();
+
         return response()->json([
             'totals' => [
-                'plants' => Plant::count(),
-                'users' => Citizen::count(),
-                'reports' => PlantReport::count(),
+                'plants' => (int) $plants->total,
+                'users' => (int) $citizens->total,
+                'reports' => (int) $reports->total,
                 'categories' => PlantCategory::count(),
             ],
 
             'plants_by_status' => [
-                'approved' => Plant::where('status', 'approved')->count(),
-                'pending' => Plant::where('status', 'pending')->count(),
-                'rejected' => Plant::where('status', 'rejected')->count(),
+                'approved' => (int) $plants->approved,
+                'pending' => (int) $plants->pending,
+                'rejected' => (int) $plants->rejected,
             ],
 
             'reports_by_status' => [
-                'new' => PlantReport::where('status', 'new')->count(),
-                'in_review' => PlantReport::where('status', 'in_review')->count(),
-                'action_taken' => PlantReport::where('status', 'action_taken')->count(),
-                'dismissed' => PlantReport::where('status', 'dismissed')->count(),
+                'new' => (int) $reports->new_count,
+                'in_review' => (int) $reports->in_review,
+                'action_taken' => (int) $reports->action_taken,
+                'dismissed' => (int) $reports->dismissed,
             ],
 
             'users' => [
-                'citizens' => Citizen::count(),
+                'citizens' => (int) $citizens->total,
                 'staff' => User::whereIn('role', ['admin', 'supervisor'])->count(),
-                'active' => Citizen::where('status', 'active')->count(),
+                'active' => (int) $citizens->active,
             ],
 
             'plants_by_category' => $this->plantsByCategory(),
@@ -61,6 +85,7 @@ class AdminStatsController extends Controller
     private function campaignsPerformance(): array
     {
         return Campaign::withCount('participants')
+            ->withApprovedCount()
             ->latest()
             ->take(6)
             ->get()

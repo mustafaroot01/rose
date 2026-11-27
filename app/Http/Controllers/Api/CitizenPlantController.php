@@ -15,7 +15,7 @@ class CitizenPlantController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $plants = Plant::where('citizen_id', $request->user()->id)
-            ->with(['category:id,name,color,icon', 'governorate:id,name'])
+            ->with(['category:id,name,color,icon', 'governorate:id,name', 'images'])
             ->withCount('reports')
             ->latest()
             ->paginate((int) $request->input('per_page', 15));

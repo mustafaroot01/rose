@@ -62,7 +62,7 @@ class CitizenController extends Controller
      */
     public function plants(Request $request, Citizen $citizen): AnonymousResourceCollection
     {
-        $query = $citizen->plants()->with(['category', 'governorate'])->withCount('reports')->latest();
+        $query = $citizen->plants()->with(['category', 'governorate', 'images'])->withCount('reports')->latest();
 
         $perPage = (int) $request->input('itemsPerPage', 10);
         $perPage = $perPage < 1 ? $query->count() ?: 1 : $perPage;

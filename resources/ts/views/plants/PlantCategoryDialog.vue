@@ -120,10 +120,8 @@ const submit = async () => {
               cols="12"
               sm="7"
             >
-              <AppTextField
+              <IconPickerField
                 v-model="form.icon"
-                label="الأيقونة (اختياري)"
-                placeholder="tabler-tree"
                 :error-messages="errors.icon"
               />
             </VCol>

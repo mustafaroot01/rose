@@ -90,7 +90,12 @@ const sources: BundleScriptConfig = {
     // 'json/gg.json',
 
     // Iconify JSON file (@iconify/json is a package name, /json/ is directory where files are, then filename)
-    require.resolve('@iconify-json/tabler/icons.json'),
+    // فقط الأيقونات المستخدمة + مجموعة اختيار التصنيفات (بدل كل الـ 6000 أيقونة).
+    // القائمة تُولَّد بـ: node resources/ts/plugins/iconify/scan-icons.mjs
+    {
+      filename: require.resolve('@iconify-json/tabler/icons.json'),
+      icons: require('./tabler-icons.json').icons,
+    },
     {
       filename: require.resolve('@iconify-json/mdi/icons.json'),
       icons: [

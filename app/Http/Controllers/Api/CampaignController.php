@@ -10,15 +10,25 @@ use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
-    /** قائمة الحملات النشطة (عامة للزوّار والمسجّلين). */
+    /**
+     * قائمة الحملات (عامة للزوّار والمسجّلين).
+     * افتراضياً: النشطة فقط (تستخدمها الخريطة وإضافة النبتة).
+     * مع ?include_ended=1: النشطة أولاً ثم المنتهية — حتى تبقى الحملة ظاهرة بعد إنهائها.
+     */
     public function index(Request $request): JsonResponse
     {
         $citizenId = optional($request->user('sanctum'))->id;
+        $includeEnded = $request->boolean('include_ended');
 
         $campaigns = Campaign::query()
             ->with(['governorate:id,name'])
             ->withCount('participants')
-            ->where('status', 'active')
+            ->when(
+                $includeEnded,
+                fn ($q) => $q->whereIn('status', ['active', 'ended'])
+                    ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END"),
+                fn ($q) => $q->where('status', 'active'),
+            )
             ->latest()
             ->get()
             ->each(function (Campaign $c) use ($citizenId) {

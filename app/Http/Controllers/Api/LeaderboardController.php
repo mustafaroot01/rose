@@ -16,7 +16,7 @@ class LeaderboardController extends Controller
     private const WATER_POINTS = 2;
 
     /**
-     * أبطال التشجير — أعلى 25 مستخدماً حسب النقاط.
+     * أبطال التشجير — أعلى 25 مستخدماً زرعوا نباتات (معتمدة أو قيد المراجعة).
      * النقاط = (عدد النباتات المعتمدة × 10) + (عدد سقياتها × 2).
      * أول 3 يُعتبرون "أبطال التشجير".
      *
@@ -28,10 +28,13 @@ class LeaderboardController extends Controller
         $pp = self::PLANT_POINTS;
         $wp = self::WATER_POINTS;
 
+        // كل مواطن زرع نبتة (معتمدة أو قيد المراجعة) يظهر بالقائمة — حتى 25 شخصاً.
+        // النقاط تُحسب من النباتات المعتمدة وسقياتها فقط (كما هي القاعدة)،
+        // وعند تساوي النقاط يُرتَّب حسب عدد النباتات المزروعة.
         $rows = DB::table('citizens')
             ->join('plants', function ($j) {
                 $j->on('plants.citizen_id', '=', 'citizens.id')
-                    ->where('plants.status', '=', 'approved')
+                    ->whereIn('plants.status', ['approved', 'pending'])
                     ->whereNull('plants.deleted_at');
             })
             ->leftJoin('plant_waterings', 'plant_waterings.plant_id', '=', 'plants.id')
@@ -40,12 +43,15 @@ class LeaderboardController extends Controller
                 'citizens.id',
                 'citizens.name',
                 'citizens.avatar',
-                DB::raw('COUNT(DISTINCT plants.id) as plants_count'),
-                DB::raw('COUNT(plant_waterings.id) as waterings'),
-                DB::raw("(COUNT(DISTINCT plants.id) * $pp + COUNT(plant_waterings.id) * $wp) as score"),
+                DB::raw("COUNT(DISTINCT CASE WHEN plants.status = 'approved' THEN plants.id END) as plants_count"),
+                DB::raw("COUNT(CASE WHEN plants.status = 'approved' THEN plant_waterings.id END) as waterings"),
+                DB::raw('COUNT(DISTINCT plants.id) as all_plants'),
+                DB::raw("(COUNT(DISTINCT CASE WHEN plants.status = 'approved' THEN plants.id END) * $pp"
+                    ." + COUNT(CASE WHEN plants.status = 'approved' THEN plant_waterings.id END) * $wp) as score"),
             ])
             ->orderByDesc('score')
-            ->orderByDesc(DB::raw('COUNT(DISTINCT plants.id)'))
+            ->orderByDesc('all_plants')
+            ->orderBy('citizens.id')
             ->limit(25)
             ->get();
 

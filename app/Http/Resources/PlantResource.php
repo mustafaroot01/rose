@@ -51,6 +51,7 @@ class PlantResource extends JsonResource
                 'id' => $this->citizen->id,
                 'name' => $this->citizen->name,
                 'phone' => $this->citizen->phone,
+                'avatar' => $this->citizen->avatarUrl(),
                 'type' => 'citizen',
             ];
         }
@@ -60,6 +61,7 @@ class PlantResource extends JsonResource
                 'id' => $this->user->id,
                 'name' => $this->user->name,
                 'phone' => $this->user->phone,
+                'avatar' => $this->user->avatar ? url('api/media/'.$this->user->avatar) : null,
                 'type' => 'admin',
             ];
         }

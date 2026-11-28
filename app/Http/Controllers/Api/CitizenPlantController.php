@@ -16,7 +16,9 @@ class CitizenPlantController extends Controller
     {
         $plants = Plant::where('citizen_id', $request->user()->id)
             ->with(['category:id,name,color,icon', 'governorate:id,name', 'images'])
-            ->withCount('reports')
+            ->withCount(['reports', 'waterings'])
+            // آخر سقية (من أي حساب) — لمعرفة النباتات الجاهزة للسقي اليوم في الرئيسية
+            ->withMax('waterings', 'watered_at')
             ->latest()
             ->paginate((int) $request->input('per_page', 15));
 

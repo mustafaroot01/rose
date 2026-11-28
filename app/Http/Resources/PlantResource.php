@@ -38,6 +38,13 @@ class PlantResource extends JsonResource
             'reports_count' => $this->whenCounted('reports'),
             'waterings_count' => $this->whenCounted('waterings'),
             'likes_count' => $this->whenCounted('likes'),
+            // يظهر فقط عند تحميله بـ withMax (قائمة نباتاتي)
+            'last_watered_at' => $this->when(
+                array_key_exists('waterings_max_watered_at', $this->resource->getAttributes()),
+                fn () => $this->resource->waterings_max_watered_at
+                    ? \Illuminate\Support\Carbon::parse($this->resource->waterings_max_watered_at)->toIso8601String()
+                    : null,
+            ),
             'activities' => PlantActivityResource::collection($this->whenLoaded('activities')),
             'reports' => PlantReportResource::collection($this->whenLoaded('reports')),
             'created_at' => $this->created_at?->toIso8601String(),

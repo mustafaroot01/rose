@@ -40,7 +40,7 @@ class LeaderboardController extends Controller
         $periodBindings = $since ? [$since] : [];
         $approvedInPeriod = "plants.status = 'approved' AND $inPeriod";
 
-        $rows = DB::table('citizens')
+        $base = DB::table('citizens')
             ->join('plants', function ($j) {
                 $j->on('plants.citizen_id', '=', 'citizens.id')
                     ->whereIn('plants.status', ['approved', 'pending'])
@@ -65,7 +65,9 @@ class LeaderboardController extends Controller
                 $periodBindings,
             )
             // ضمن فترة الشهر: من له نشاط خلاله فقط
-            ->when($since, fn ($q) => $q->havingRaw('(all_plants + waterings) > 0'))
+            ->when($since, fn ($q) => $q->havingRaw('(all_plants + waterings) > 0'));
+
+        $rows = (clone $base)
             ->orderByDesc('score')
             ->orderByDesc('all_plants')
             ->orderBy('citizens.id')
@@ -86,6 +88,26 @@ class LeaderboardController extends Controller
             ];
         });
 
-        return response()->json(['data' => $data]);
+        // ترتيبي حتى لو كنت خارج الـ 25 (يُعرض في الرئيسية)
+        $me = $data->firstWhere('is_me', true);
+        if (! $me && $citizenId) {
+            $mine = (clone $base)->where('citizens.id', $citizenId)->first();
+            if ($mine) {
+                $above = DB::query()->fromSub(clone $base, 't')->where('score', '>', $mine->score)->count();
+                $me = [
+                    'id' => (int) $mine->id,
+                    'name' => $mine->name,
+                    'avatar' => $mine->avatar ? url('api/media/'.$mine->avatar) : null,
+                    'plants_count' => (int) $mine->plants_count,
+                    'waterings' => (int) $mine->waterings,
+                    'score' => (int) $mine->score,
+                    'rank' => $above + 1,
+                    'is_hero' => false,
+                    'is_me' => true,
+                ];
+            }
+        }
+
+        return response()->json(['data' => $data, 'me' => $me]);
     }
 }
